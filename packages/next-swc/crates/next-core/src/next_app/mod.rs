@@ -49,7 +49,7 @@ pub enum PageSegment {
     /// e.g. `/[[...slug]]`
     OptionalCatchAll(Arc<String>),
     /// e.g. `/(shop)`
-    Group(String),
+    Group(Arc<String>),
     /// e.g. `/@auth`
     Parallel(Arc<String>),
     /// The final page type appended. (e.g. `/dashboard/page`,
@@ -68,32 +68,32 @@ impl PageSegment {
         }
 
         if let Some(s) = segment.strip_prefix('(').and_then(|s| s.strip_suffix(')')) {
-            return Ok(PageSegment::Group(s.to_string()));
+            return Ok(PageSegment::Group(s.to_string().into()));
         }
 
         if let Some(s) = segment.strip_prefix('@') {
-            return Ok(PageSegment::Parallel(s.to_string()));
+            return Ok(PageSegment::Parallel(s.to_string().into()));
         }
 
         if let Some(s) = segment
             .strip_prefix("[[...")
             .and_then(|s| s.strip_suffix("]]"))
         {
-            return Ok(PageSegment::OptionalCatchAll(s.to_string()));
+            return Ok(PageSegment::OptionalCatchAll(s.to_string().into()));
         }
 
         if let Some(s) = segment
             .strip_prefix("[...")
             .and_then(|s| s.strip_suffix(']'))
         {
-            return Ok(PageSegment::CatchAll(s.to_string()));
+            return Ok(PageSegment::CatchAll(s.to_string().into()));
         }
 
         if let Some(s) = segment.strip_prefix('[').and_then(|s| s.strip_suffix(']')) {
-            return Ok(PageSegment::Dynamic(s.to_string()));
+            return Ok(PageSegment::Dynamic(s.to_string().into()));
         }
 
-        Ok(PageSegment::Static(segment.to_string()))
+        Ok(PageSegment::Static(segment.to_string().into()))
     }
 }
 
@@ -309,13 +309,13 @@ impl PartialOrd for AppPage {
 )]
 pub enum PathSegment {
     /// e.g. `/dashboard`
-    Static(String),
+    Static(Arc<String>),
     /// e.g. `/[id]`
-    Dynamic(String),
+    Dynamic(Arc<String>),
     /// e.g. `/[...slug]`
-    CatchAll(String),
+    CatchAll(Arc<String>),
     /// e.g. `/[[...slug]]`
-    OptionalCatchAll(String),
+    OptionalCatchAll(Arc<String>),
 }
 
 impl Display for PathSegment {

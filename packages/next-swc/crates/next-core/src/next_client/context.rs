@@ -1,4 +1,5 @@
 use core::result::Result::Ok;
+use std::sync::Arc;
 
 use anyhow::Result;
 use indexmap::IndexMap;
@@ -110,7 +111,7 @@ async fn next_client_free_vars(define_env: Vc<EnvMap>) -> Result<Vc<FreeVarRefer
 
 #[turbo_tasks::function]
 pub fn get_client_compile_time_info(
-    browserslist_query: String,
+    browserslist_query: Arc<String>,
     define_env: Vc<EnvMap>,
 ) -> Vc<CompileTimeInfo> {
     CompileTimeInfo::builder(Environment::new(Value::new(ExecutionEnvironment::Browser(
