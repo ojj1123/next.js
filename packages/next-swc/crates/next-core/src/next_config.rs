@@ -775,7 +775,7 @@ impl NextConfig {
                             ext.to_string(),
                             LoaderRuleItem {
                                 loaders: transform_loaders(loaders),
-                                rename_as: rename_as.clone(),
+                                rename_as: rename_as.clone().map(Arc::new),
                             },
                         );
                     }
