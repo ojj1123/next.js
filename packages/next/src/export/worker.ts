@@ -39,7 +39,6 @@ import {
   turborepoTraceAccess,
   TurborepoAccessTraceResult,
 } from '../build/turborepo-access-trace'
-import { parsePPRConfig } from '../server/lib/experimental/ppr'
 
 const envConfig = require('../shared/lib/runtime-config.external')
 
@@ -72,7 +71,6 @@ async function exportPageImpl(
     ampValidatorPath,
     trailingSlash,
     enabledDirectories,
-    pprConfig,
   } = input
 
   if (enableExperimentalReact) {
@@ -91,6 +89,10 @@ async function exportPageImpl(
 
     // Check if this should error when dynamic usage is detected.
     _isDynamicError: isDynamicError = false,
+
+    // If this page supports partial prerendering, then we need to pass that to
+    // the renderOpts.
+    _supportsPPR: supportsPPR,
 
     // Pull the original query out.
     query: originalQuery = {},
@@ -222,8 +224,6 @@ async function exportPageImpl(
 
     await fs.mkdir(baseDir, { recursive: true })
 
-    const ppr = parsePPRConfig(pprConfig)
-
     // If the fetch cache was enabled, we need to create an incremental
     // cache instance for this page.
     const incrementalCache =
@@ -235,7 +235,7 @@ async function exportPageImpl(
             distDir,
             dir,
             enabledDirectories,
-            pprEnabled: ppr.enabled,
+            pprEnabled: input.renderOpts.experimental.pprEnabled,
             // skip writing to disk in minimal mode for now, pending some
             // changes to better support it
             flushToDisk: !hasNextSupport,
@@ -276,7 +276,7 @@ async function exportPageImpl(
       originalPathname: page,
       experimental: {
         ...input.renderOpts.experimental,
-        supportsPPR: isAppDir && ppr.isSupported(page),
+        supportsPPR,
       },
     }
 

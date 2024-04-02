@@ -1,52 +1,48 @@
+import type { AppConfig } from '../../../build/utils'
 import type { ExperimentalPPRConfig } from '../../config-shared'
 
-type PPRConfig = {
-  /**
-   * True if partial prerendering is enabled for this application. This does not
-   * determine if the current page supports partial prerendering, only if the
-   * feature is enabled for the application. To determine if the current page
-   * supports partial prerendering, use `isSupported`.
-   */
-  readonly enabled: boolean
+/**
+ * Returns true if partial prerendering is enabled for the application.
+ */
+export function isPPREnabled(
+  config: ExperimentalPPRConfig | undefined
+): boolean {
+  // If the config is undefined, partial prerendering is disabled.
+  if (typeof config === 'undefined') return false
 
-  /**
-   * Returns true if the current page supports partial prerendering. This will
-   * only return true if the feature is enabled for the application and the
-   * current page is not excluded.
-   */
-  readonly isSupported: (page: string) => boolean
+  // If the config is a boolean, use it directly.
+  if (typeof config === 'boolean') return config
+
+  // If the config is a string, it must be 'incremental' to enable partial
+  // prerendering.
+  if (config === 'incremental') return true
+
+  return false
 }
 
 /**
- * Parse the experimental PPR configuration into a PPRConfig object.
+ * Returns true if partial prerendering is supported for the current page with
+ * the provided app configuration.
  */
-export function parsePPRConfig(
-  config: ExperimentalPPRConfig | undefined
-): PPRConfig {
+export function isPPRSupported(
+  config: ExperimentalPPRConfig | undefined,
+  appConfig: AppConfig
+): boolean {
+  // If the config is undefined or false, partial prerendering is disabled.
   if (typeof config === 'undefined' || config === false) {
-    return { enabled: false, isSupported: () => false }
+    return false
   }
 
-  if (config === true || typeof config.matcher === 'undefined') {
-    return { enabled: true, isSupported: () => true }
+  // If the config is set to true, then the page supports partial prerendering.
+  if (config === true) {
+    return true
   }
 
-  // Compose the matcher function.
-  const matcher =
-    typeof config.matcher === 'string'
-      ? [new RegExp(config.matcher)]
-      : config.matcher.map((pattern) => new RegExp(pattern))
-
-  // If the matcher is defined but empty, partial prerendering is disabled.
-  if (matcher.length === 0) {
-    return { enabled: false, isSupported: () => false }
+  // If the config is a string, it must be 'incremental' to enable partial
+  // prerendering.
+  if (config === 'incremental' && appConfig.experimental_ppr === true) {
+    return true
   }
 
-  return {
-    enabled: true,
-    isSupported: (page: string) => {
-      // The page is supported if any of the patterns match.
-      return matcher.some((pattern) => pattern.test(page))
-    },
-  }
+  return false
 }

@@ -300,14 +300,7 @@ export const configSchema: zod.ZodType<NextConfig> = z.lazy(() =>
         parallelServerCompiles: z.boolean().optional(),
         parallelServerBuildTraces: z.boolean().optional(),
         ppr: z
-          .union([
-            z.boolean(),
-            z.object({
-              matcher: z
-                .union([z.string(), z.array(z.string()).readonly()])
-                .optional(),
-            }),
-          ])
+          .union([z.boolean(), z.enum(['incremental'])])
           .readonly()
           .optional(),
         taint: z.boolean().optional(),

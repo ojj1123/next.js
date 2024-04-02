@@ -138,7 +138,7 @@ import { PrefetchRSCPathnameNormalizer } from './future/normalizers/request/pref
 import { NextDataPathnameNormalizer } from './future/normalizers/request/next-data'
 import { getIsServerAction } from './lib/server-action-request-meta'
 import { isInterceptionRouteAppPath } from './future/helpers/interception-routes'
-import { parsePPRConfig } from './lib/experimental/ppr'
+import { isPPREnabled } from './lib/experimental/ppr'
 
 export type FindComponentsResult = {
   components: LoadComponentsReturnType
@@ -449,14 +449,14 @@ export default abstract class Server<ServerOptions extends Options = Options> {
 
     this.enabledDirectories = this.getEnabledDirectories(dev)
 
-    const ppr = parsePPRConfig(this.nextConfig.experimental.ppr)
+    const pprEnabled = isPPREnabled(this.nextConfig.experimental.ppr)
 
     this.normalizers = {
       // We should normalize the pathname from the RSC prefix only in minimal
       // mode as otherwise that route is not exposed external to the server as
       // we instead only rely on the headers.
       postponed:
-        this.enabledDirectories.app && ppr.enabled && this.minimalMode
+        this.enabledDirectories.app && pprEnabled && this.minimalMode
           ? new PostponedPathnameNormalizer()
           : undefined,
       rsc:
@@ -464,7 +464,7 @@ export default abstract class Server<ServerOptions extends Options = Options> {
           ? new RSCPathnameNormalizer()
           : undefined,
       prefetchRSC:
-        this.enabledDirectories.app && ppr.enabled && this.minimalMode
+        this.enabledDirectories.app && pprEnabled && this.minimalMode
           ? new PrefetchRSCPathnameNormalizer()
           : undefined,
       data: this.enabledDirectories.pages
@@ -520,7 +520,7 @@ export default abstract class Server<ServerOptions extends Options = Options> {
       // @ts-expect-error internal field not publicly exposed
       isExperimentalCompile: this.nextConfig.experimental.isExperimentalCompile,
       experimental: {
-        pprEnabled: ppr.enabled,
+        pprEnabled,
         missingSuspenseWithCSRBailout:
           this.nextConfig.experimental.missingSuspenseWithCSRBailout === true,
         swrDelta: this.nextConfig.experimental.swrDelta,

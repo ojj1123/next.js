@@ -179,20 +179,14 @@ export interface NextJsWebpackConfig {
   ): any
 }
 
-export type ExperimentalPPRConfig =
-  | boolean
-  | {
-      /**
-       * If provided, the list of matchers that should be used to determine if a
-       * page should have partial prerendering enabled on. This matches the same
-       * format as the `matcher` property in the `middleware.js` file.
-       *
-       * If undefined, all routes will be considered for partial prerendering.
-       *
-       * @see https://nextjs.org/docs/pages/building-your-application/routing/middleware#matcher
-       */
-      readonly matcher?: string | readonly string[]
-    }
+/**
+ * If set to `incremental`, only those leaf pages that export
+ * `experimental_ppr = true` will have partial prerendering enabled. If any
+ * page exports this value as `false` or does not export it at all will not
+ * have partial prerendering enabled. If set to a boolean, it the options for
+ * `experimental_ppr` will be ignored.
+ */
+export type ExperimentalPPRConfig = boolean | 'incremental'
 
 export interface ExperimentalConfig {
   prerenderEarlyExit?: boolean
@@ -463,9 +457,26 @@ export type ExportPathMap = {
   [path: string]: {
     page: string
     query?: NextParsedUrlQuery
+
+    /**
+     * @internal
+     */
     _isAppDir?: boolean
+
+    /**
+     * @internal
+     */
     _isAppPrefetch?: boolean
+
+    /**
+     * @internal
+     */
     _isDynamicError?: boolean
+
+    /**
+     * @internal
+     */
+    _supportsPPR?: boolean
   }
 }
 
